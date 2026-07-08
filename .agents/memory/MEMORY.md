@@ -1,0 +1,1 @@
+- [Server-computed status fields](server-computed-status-fields.md) — pattern for entities with a derived state (expiry status, etc.) computed at read-time, not stored.

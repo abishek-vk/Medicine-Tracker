@@ -10,6 +10,10 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: medicines
+    description: Medicine inventory operations
+  - name: dashboard
+    description: Dashboard and reports operations
 paths:
   /healthz:
     get:
@@ -24,6 +28,175 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /medicines:
+    get:
+      operationId: listMedicines
+      tags: [medicines]
+      summary: List medicines
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/MedicineStatus"
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [name, expiryDate, manufacturer, quantity, createdAt]
+      responses:
+        "200":
+          description: List of medicines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Medicine"
+    post:
+      operationId: createMedicine
+      tags: [medicines]
+      summary: Create a medicine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MedicineInput"
+      responses:
+        "201":
+          description: Created medicine
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Medicine"
+  /medicines/{id}:
+    get:
+      operationId: getMedicine
+      tags: [medicines]
+      summary: Get a medicine by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Medicine
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Medicine"
+        "404":
+          description: Not found
+    put:
+      operationId: updateMedicine
+      tags: [medicines]
+      summary: Update a medicine
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MedicineInput"
+      responses:
+        "200":
+          description: Updated medicine
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Medicine"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteMedicine
+      tags: [medicines]
+      summary: Delete a medicine
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+  /medicines/lookup/{qrCodeValue}:
+    get:
+      operationId: lookupMedicineByQrCode
+      tags: [medicines]
+      summary: Find a medicine by its QR code value
+      parameters:
+        - name: qrCodeValue
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Medicine found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Medicine"
+        "404":
+          description: Not found
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary statistics
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+  /dashboard/recent:
+    get:
+      operationId: getRecentMedicines
+      tags: [dashboard]
+      summary: Get recently added medicines
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 5
+      responses:
+        "200":
+          description: Recent medicines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Medicine"
+  /reports/summary:
+    get:
+      operationId: getReportsSummary
+      tags: [dashboard]
+      summary: Get report statistics
+      responses:
+        "200":
+          description: Reports summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportsSummary"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +206,112 @@ components:
           type: string
       required:
         - status
-
+    MedicineStatus:
+      type: string
+      enum: [safe, near_expiry, expiring_soon, expired]
+    MedicineInput:
+      type: object
+      properties:
+        name:
+          type: string
+        batchNumber:
+          type: string
+        manufacturer:
+          type: string
+        manufacturingDate:
+          type: string
+          format: date
+        expiryDate:
+          type: string
+          format: date
+        quantity:
+          type: integer
+        storageLocation:
+          type: string
+        category:
+          type: string
+        qrCodeValue:
+          type: string
+      required:
+        - name
+        - batchNumber
+        - manufacturer
+        - manufacturingDate
+        - expiryDate
+        - quantity
+        - storageLocation
+        - category
+        - qrCodeValue
+    Medicine:
+      allOf:
+        - $ref: "#/components/schemas/MedicineInput"
+        - type: object
+          properties:
+            id:
+              type: string
+            remainingDays:
+              type: integer
+            status:
+              $ref: "#/components/schemas/MedicineStatus"
+            createdAt:
+              type: string
+              format: date-time
+          required:
+            - id
+            - remainingDays
+            - status
+            - createdAt
+    DashboardSummary:
+      type: object
+      properties:
+        total:
+          type: integer
+        safe:
+          type: integer
+        nearExpiry:
+          type: integer
+        expiringSoon:
+          type: integer
+        expired:
+          type: integer
+      required:
+        - total
+        - safe
+        - nearExpiry
+        - expiringSoon
+        - expired
+    ReportsSummary:
+      type: object
+      properties:
+        expiringThisMonth:
+          type: integer
+        expired:
+          type: integer
+        total:
+          type: integer
+        safe:
+          type: integer
+        nearExpiry:
+          type: integer
+        totalQuantity:
+          type: integer
+        monthlySummary:
+          type: array
+          items:
+            type: object
+            properties:
+              month:
+                type: string
+              count:
+                type: integer
+            required:
+              - month
+              - count
+      required:
+        - expiringThisMonth
+        - expired
+        - total
+        - safe
+        - nearExpiry
+        - totalQuantity
+        - monthlySummary

@@ -1,0 +1,666 @@
+Smart Medicine Expiry Tracker – Complete Flutter Application
+Project Overview
+
+Develop a complete Flutter application named Smart Medicine Expiry Tracker, a modern mobile application that helps hospitals, pharmacies, clinics, laboratories, and medical stores efficiently manage medicine inventory and monitor expiry dates.
+
+The application should be production-quality, responsive, visually appealing, and suitable for a hackathon demonstration. Focus on clean architecture, modular code, smooth navigation, and an intuitive user experience.
+
+Technology Stack
+
+Develop the application using:
+
+Flutter (Latest Stable Version)
+Dart
+Material Design 3
+mobile_scanner
+flutter_local_notifications
+intl
+
+Follow Flutter best practices and keep the project modular and scalable.
+
+Project Structure
+
+Organize the project as follows:
+
+lib/
+│
+├── models/
+│   └── medicine.dart
+│
+├── screens/
+│   ├── splash/
+│   ├── login/
+│   ├── dashboard/
+│   ├── medicine/
+│   ├── scanner/
+│   ├── reports/
+│   └── profile/
+│
+├── widgets/
+│
+├── services/
+│
+├── utils/
+│
+├── constants/
+│
+└── main.dart
+
+Use reusable widgets and separate UI, business logic, and utility functions.
+
+UI & UX Design Reference
+
+Use the attached reference image as the primary UI inspiration.
+
+The application's design should closely resemble the reference image while maintaining Flutter Material Design 3 guidelines.
+
+The UI should have:
+
+Modern healthcare application design
+Minimalistic appearance
+White cards
+Teal primary color
+Rounded corners
+Soft shadows
+Premium dashboard
+Professional spacing
+Smooth animations
+Clean typography
+Responsive layout
+
+The final app should feel like a polished production-ready healthcare application.
+
+Color Palette
+
+Primary Color
+
+Teal (#00897B)
+
+Secondary
+
+Blue (#1976D2)
+
+Safe
+
+Green (#4CAF50)
+
+Near Expiry
+
+Yellow (#FFC107)
+
+Expiring Soon
+
+Orange (#FF9800)
+
+Expired
+
+Red (#F44336)
+
+Background
+
+#F5F7FA
+
+Cards
+
+White
+
+Text
+
+Dark Grey
+
+Splash Screen
+
+Create a beautiful splash screen similar to the reference.
+
+Include:
+
+Medicine illustration
+App Logo
+App Name
+
+SMART MEDICINE EXPIRY TRACKER
+
+Tagline
+
+Scan. Check. Stay Safe.
+
+Use fade animation before navigating to Login.
+
+Login Screen
+
+Design similar to the reference.
+
+Include:
+
+Medical illustration
+App branding
+Welcome message
+Email field
+Password field
+Show/Hide password
+Login button
+Sign Up button (UI only)
+
+Validation:
+
+Email required
+Password required
+
+Navigate to Dashboard after login.
+
+Dashboard
+
+Design a professional dashboard exactly like the reference.
+
+Top AppBar:
+
+Menu icon
+Dashboard title
+Notification icon
+
+Below it display statistic cards.
+
+Cards:
+
+Total Medicines
+Safe
+Expiring Soon
+Expired
+
+Each card should contain:
+
+Colored icon
+Count
+Label
+White card
+Rounded corners
+Soft shadow
+
+Below that display an Expiry Overview using a Doughnut Chart.
+
+Below the chart display:
+
+Recent Medicines
+
+Each medicine row should contain:
+
+Medicine icon
+Medicine name
+Batch Number
+Expiry Date
+Status badge
+
+Status colors:
+
+🟢 Safe
+
+🟡 Near Expiry
+
+🟠 Expiring Soon
+
+🔴 Expired
+
+Bottom Navigation
+
+Create a modern bottom navigation.
+
+Tabs:
+
+Home
+Medicines
+Scan
+Reports
+Profile
+
+The Scan button should be centered, circular, elevated, and highlighted like the reference image.
+
+Medicine Model
+
+Create a Medicine model with:
+
+Medicine Name
+Batch Number
+Manufacturer
+Manufacturing Date
+Expiry Date
+Quantity
+Storage Location
+Category
+QR Code Value
+Remaining Days
+Status
+
+Generate Remaining Days and Status automatically.
+
+Add Medicine Screen
+
+Design the form exactly like the reference.
+
+Each row should include:
+
+Icon
+Label
+Input Field
+
+Fields:
+
+Medicine Name
+Batch Number
+Manufacturer
+Category
+Manufacturing Date
+Expiry Date
+Quantity
+Storage Location
+QR Code Value
+
+Buttons:
+
+Cancel
+
+Save
+
+Validation:
+
+No empty fields
+Expiry date after manufacturing date
+Quantity > 0
+
+After saving:
+
+Show green success snackbar
+Update dashboard
+Refresh medicine list
+Medicine List
+
+Display medicines using beautiful cards.
+
+Each card should display:
+
+Medicine icon
+Medicine Name
+Manufacturer
+Batch Number
+Quantity
+Expiry Date
+Remaining Days
+Status Badge
+
+Provide:
+
+Search Bar
+
+Sorting:
+
+Name
+Expiry Date
+Manufacturer
+Quantity
+Recently Added
+
+Filter Chips:
+
+All
+Safe
+Near Expiry
+Expiring Soon
+Expired
+
+Searching and filtering should update instantly.
+
+Medicine Details
+
+Display all medicine information inside elegant cards.
+
+Include:
+
+Medicine Name
+Manufacturer
+Batch Number
+Manufacturing Date
+Expiry Date
+Remaining Days
+Quantity
+Storage Location
+Category
+QR Code
+Status
+
+Buttons:
+
+Edit
+Delete
+Back
+
+Delete should show confirmation dialog.
+
+QR Code Scanner
+
+Use the mobile_scanner package.
+
+Scanner should include:
+
+Camera Preview
+Animated Scan Frame
+Moving Scan Line
+Flash Toggle
+Switch Camera
+Gallery Button
+Scan History Button
+
+After scanning:
+
+If medicine exists
+
+Open Medicine Details
+
+Otherwise
+
+Show
+
+Medicine not found
+
+Display button
+
+Add New Medicine
+
+Automatically populate QR Code field.
+
+Scan Result Screens
+
+Create separate result screens.
+
+Safe
+
+Large Green Check Icon
+
+SAFE
+
+Message
+
+This medicine is safe to use.
+
+Display:
+
+Medicine Name
+Batch Number
+Manufacturing Date
+Expiry Date
+Remaining Days
+
+Show green storage advice card.
+
+Expiring Soon
+
+Large Orange Hourglass
+
+Display:
+
+Medicine Name
+Batch Number
+Expiry Date
+Remaining Days
+
+Show warning message.
+
+Provide
+
+Set Reminder Button
+
+Expired
+
+Large Red Cross
+
+Display:
+
+Medicine Name
+Batch Number
+Expiry Date
+Days Since Expired
+
+Show warning card.
+
+Message:
+
+Do not use this medicine.
+
+Dispose of it properly.
+
+Expiry Logic
+
+Calculate dynamically using current system date.
+
+Rules:
+
+More than 90 Days
+
+Status
+
+Safe
+
+Green
+
+30–90 Days
+
+Near Expiry
+
+Yellow
+
+Less than 30 Days
+
+Expiring Soon
+
+Orange
+
+Expired
+
+Red
+
+Automatically calculate Remaining Days.
+
+Notifications
+
+Use flutter_local_notifications.
+
+Whenever the application starts:
+
+Check all medicines.
+
+Generate notifications for:
+
+Expiring Today
+Expiring Within 30 Days
+Already Expired
+
+Examples:
+
+Paracetamol expires in 15 days.
+
+Ibuprofen has expired.
+
+Reports Screen
+
+Design similar to the reference.
+
+Include report cards:
+
+Expiring This Month
+Expired Medicines
+Total Medicines
+Safe Medicines
+Near Expiry Medicines
+Total Quantity
+
+Include:
+
+Doughnut Chart
+Bar Chart
+Monthly Summary
+Status Distribution
+Download Report Button (UI)
+Search
+
+Allow searching by:
+
+Medicine Name
+Batch Number
+Manufacturer
+QR Code
+
+Update instantly.
+
+Sorting
+
+Allow sorting by:
+
+Name
+Manufacturer
+Quantity
+Expiry Date
+Recently Added
+Oldest
+
+Ascending and Descending.
+
+Filtering
+
+Create filter chips:
+
+All
+Safe
+Near Expiry
+Expiring Soon
+Expired
+Sample Medicines
+
+Load realistic sample medicines automatically.
+
+Include:
+
+Paracetamol
+Amoxicillin
+Cetirizine
+Ibuprofen
+Aspirin
+Vitamin C
+Azithromycin
+Metformin
+Insulin
+Dolo 650
+
+Each medicine should contain:
+
+Manufacturer
+Batch Number
+Manufacturing Date
+Expiry Date
+Quantity
+Category
+Storage Location
+QR Code
+Automatically calculated status
+User Experience
+
+Include:
+
+Smooth page transitions
+Fade animations
+Hero animations
+Card animations
+Loading indicators
+Snackbars
+Confirmation dialogs
+Empty state screens
+Responsive layouts
+Beautiful spacing
+Professional icons
+Material Design 3
+Premium dashboard appearance
+Application Flow
+Splash Screen
+        ↓
+Login
+        ↓
+Dashboard
+        ↓
+Home
+ ├── Scan Medicine
+ ├── Add Medicine
+ ├── Medicine List
+ ├── Reports
+ └── Profile
+
+Scan Medicine
+        ↓
+Scan QR Code
+        ↓
+Medicine Found?
+      ↙         ↘
+    Yes         No
+     ↓           ↓
+Medicine      Add New
+Details      Medicine
+     ↓
+Edit/Delete
+     ↓
+Dashboard Updates
+Validation
+
+Validate every field.
+
+Prevent:
+
+Empty values
+Invalid dates
+Negative quantity
+Invalid inputs
+
+Display meaningful error messages.
+
+Code Quality
+
+Write clean, modular, maintainable Flutter code.
+
+Requirements:
+
+Reusable widgets
+Separate models
+Separate services
+Utility classes
+Constants
+Clean folder structure
+Proper comments
+Consistent naming conventions
+Efficient state management
+No duplicate code
+
+Follow Flutter best practices throughout the project.
+
+Final Deliverable
+
+Generate a complete Flutter application with:
+
+Beautiful Splash Screen
+Login Screen
+Dashboard
+Bottom Navigation
+Add Medicine
+Medicine List
+Medicine Details
+Edit Medicine
+Delete Medicine
+QR Code Scanner
+Search
+Sorting
+Filtering
+Automatic Expiry Status Calculation
+Local Notifications
+Reports Dashboard with Charts
+Sample Medicine Data
+Responsive UI
+Smooth Animations
+Modern Material Design 3
+Clean Folder Structure
+Scalable and Maintainable Code
+
+The final UI should closely match the attached reference image in terms of layout, spacing, colors, card styles, navigation, typography, and overall premium healthcare application aesthetics while maintaining Flutter best practices and a polished, hackathon-ready user experience.
