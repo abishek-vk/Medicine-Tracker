@@ -1,6 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, ilike, or } from "drizzle-orm";
-import { db, medicinesTable } from "@workspace/db";
+import { MedicineModel } from "@workspace/db";
 import {
   CreateMedicineBody,
   UpdateMedicineBody,
@@ -24,41 +23,49 @@ router.get("/medicines", async (req, res): Promise<void> => {
 
   const { search, status, sortBy } = query.data;
 
-  const conditions = search
-    ? or(
-        ilike(medicinesTable.name, `%${search}%`),
-        ilike(medicinesTable.batchNumber, `%${search}%`),
-        ilike(medicinesTable.manufacturer, `%${search}%`),
-      )
-    : undefined;
+  const filter: Record<string, unknown> = {};
 
-  const rows = conditions
-    ? await db.select().from(medicinesTable).where(conditions)
-    : await db.select().from(medicinesTable);
-
-  let medicines = rows.map((row) => withComputedFields(row));
-
-  if (status) {
-    medicines = medicines.filter((m) => m.status === (status as MedicineStatus));
+  if (search) {
+    const regex = new RegExp(search, "i");
+    filter.$or = [
+      { name: regex },
+      { batchNumber: regex },
+      { manufacturer: regex },
+    ];
   }
+
+  let sortField = "createdAt";
+  let sortDir: 1 | -1 = -1;
 
   switch (sortBy) {
     case "name":
-      medicines.sort((a, b) => a.name.localeCompare(b.name));
+      sortField = "name";
+      sortDir = 1;
       break;
     case "expiryDate":
-      medicines.sort((a, b) => a.expiryDate.localeCompare(b.expiryDate));
+      sortField = "expiryDate";
+      sortDir = 1;
       break;
     case "manufacturer":
-      medicines.sort((a, b) => a.manufacturer.localeCompare(b.manufacturer));
+      sortField = "manufacturer";
+      sortDir = 1;
       break;
     case "quantity":
-      medicines.sort((a, b) => b.quantity - a.quantity);
+      sortField = "quantity";
+      sortDir = -1;
       break;
     case "createdAt":
     default:
-      medicines.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      sortField = "createdAt";
+      sortDir = -1;
       break;
+  }
+
+  const docs = await MedicineModel.find(filter).sort({ [sortField]: sortDir }).lean();
+  let medicines = docs.map((doc: Record<string, unknown>) => withComputedFields(doc));
+
+  if (status) {
+    medicines = medicines.filter((m) => m.status === (status as MedicineStatus));
   }
 
   res.json(medicines);
@@ -73,16 +80,15 @@ router.post("/medicines", async (req, res): Promise<void> => {
 
   const { manufacturingDate, expiryDate, ...rest } = parsed.data;
 
-  const [medicine] = await db
-    .insert(medicinesTable)
-    .values({
+  const [doc] = await MedicineModel.create([
+    {
       ...rest,
       manufacturingDate: manufacturingDate.toISOString().slice(0, 10),
       expiryDate: expiryDate.toISOString().slice(0, 10),
-    })
-    .returning();
+    },
+  ]);
 
-  res.status(201).json(withComputedFields(medicine));
+  res.status(201).json(withComputedFields(doc.toJSON() as Record<string, unknown>));
 });
 
 router.get("/medicines/lookup/:qrCodeValue", async (req, res): Promise<void> => {
@@ -92,17 +98,13 @@ router.get("/medicines/lookup/:qrCodeValue", async (req, res): Promise<void> => 
     return;
   }
 
-  const [medicine] = await db
-    .select()
-    .from(medicinesTable)
-    .where(eq(medicinesTable.qrCodeValue, params.data.qrCodeValue));
-
-  if (!medicine) {
+  const doc = await MedicineModel.findOne({ qrCodeValue: params.data.qrCodeValue }).lean();
+  if (!doc) {
     res.status(404).json({ error: "Medicine not found" });
     return;
   }
 
-  res.json(withComputedFields(medicine));
+  res.json(withComputedFields(doc as Record<string, unknown>));
 });
 
 router.get("/medicines/:id", async (req, res): Promise<void> => {
@@ -112,17 +114,13 @@ router.get("/medicines/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [medicine] = await db
-    .select()
-    .from(medicinesTable)
-    .where(eq(medicinesTable.id, params.data.id));
-
-  if (!medicine) {
+  const doc = await MedicineModel.findById(params.data.id).lean();
+  if (!doc) {
     res.status(404).json({ error: "Medicine not found" });
     return;
   }
 
-  res.json(withComputedFields(medicine));
+  res.json(withComputedFields(doc as Record<string, unknown>));
 });
 
 router.put("/medicines/:id", async (req, res): Promise<void> => {
@@ -140,22 +138,24 @@ router.put("/medicines/:id", async (req, res): Promise<void> => {
 
   const { manufacturingDate, expiryDate, ...rest } = parsed.data;
 
-  const [medicine] = await db
-    .update(medicinesTable)
-    .set({
-      ...rest,
-      manufacturingDate: manufacturingDate.toISOString().slice(0, 10),
-      expiryDate: expiryDate.toISOString().slice(0, 10),
-    })
-    .where(eq(medicinesTable.id, params.data.id))
-    .returning();
+  const doc = await MedicineModel.findByIdAndUpdate(
+    params.data.id,
+    {
+      $set: {
+        ...rest,
+        manufacturingDate: manufacturingDate.toISOString().slice(0, 10),
+        expiryDate: expiryDate.toISOString().slice(0, 10),
+      },
+    },
+    { new: true },
+  ).lean();
 
-  if (!medicine) {
+  if (!doc) {
     res.status(404).json({ error: "Medicine not found" });
     return;
   }
 
-  res.json(withComputedFields(medicine));
+  res.json(withComputedFields(doc as Record<string, unknown>));
 });
 
 router.delete("/medicines/:id", async (req, res): Promise<void> => {
@@ -165,12 +165,8 @@ router.delete("/medicines/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [medicine] = await db
-    .delete(medicinesTable)
-    .where(eq(medicinesTable.id, params.data.id))
-    .returning();
-
-  if (!medicine) {
+  const doc = await MedicineModel.findByIdAndDelete(params.data.id).lean();
+  if (!doc) {
     res.status(404).json({ error: "Medicine not found" });
     return;
   }
@@ -185,11 +181,12 @@ router.get("/dashboard/recent", async (req, res): Promise<void> => {
     return;
   }
 
-  const rows = await db.select().from(medicinesTable);
-  const medicines = rows
-    .map((row) => withComputedFields(row))
-    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-    .slice(0, query.data.limit);
+  const docs = await MedicineModel.find()
+    .sort({ createdAt: -1 })
+    .limit(query.data.limit)
+    .lean();
+
+  const medicines = docs.map((doc: Record<string, unknown>) => withComputedFields(doc));
 
   res.json(medicines);
 });

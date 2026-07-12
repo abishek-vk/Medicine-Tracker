@@ -1,12 +1,12 @@
 import { Router, type IRouter } from "express";
-import { db, medicinesTable } from "@workspace/db";
-import { withComputedFields } from "../lib/medicine-status";
+import { MedicineModel } from "@workspace/db";
+import { withComputedFields, type MedicineRecord } from "../lib/medicine-status";
 
 const router: IRouter = Router();
 
 router.get("/dashboard/summary", async (_req, res): Promise<void> => {
-  const rows = await db.select().from(medicinesTable);
-  const medicines = rows.map((row) => withComputedFields(row));
+  const docs = await MedicineModel.find().lean();
+  const medicines: MedicineRecord[] = docs.map((doc: Record<string, unknown>) => withComputedFields(doc));
 
   const summary = {
     total: medicines.length,
@@ -20,8 +20,8 @@ router.get("/dashboard/summary", async (_req, res): Promise<void> => {
 });
 
 router.get("/reports/summary", async (_req, res): Promise<void> => {
-  const rows = await db.select().from(medicinesTable);
-  const medicines = rows.map((row) => withComputedFields(row));
+  const docs = await MedicineModel.find().lean();
+  const medicines = docs.map((doc: Record<string, unknown>) => withComputedFields(doc));
 
   const now = new Date();
   const currentMonth = now.getUTCMonth();

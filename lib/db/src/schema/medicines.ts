@@ -1,24 +1,28 @@
-import { pgTable, text, integer, date, timestamp, uuid } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
+import mongoose, { Schema } from "mongoose";
 
-export const medicinesTable = pgTable("medicines", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  batchNumber: text("batch_number").notNull(),
-  manufacturer: text("manufacturer").notNull(),
-  manufacturingDate: date("manufacturing_date", { mode: "string" }).notNull(),
-  expiryDate: date("expiry_date", { mode: "string" }).notNull(),
-  quantity: integer("quantity").notNull(),
-  storageLocation: text("storage_location").notNull(),
-  category: text("category").notNull(),
-  qrCodeValue: text("qr_code_value").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+const medicineSchema = new Schema(
+  {
+    name: { type: String, required: true },
+    batchNumber: { type: String, required: true },
+    manufacturer: { type: String, required: true },
+    manufacturingDate: { type: String, required: true },
+    expiryDate: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    storageLocation: { type: String, required: true },
+    category: { type: String, required: true },
+    qrCodeValue: { type: String, required: true },
+  },
+  {
+    timestamps: { createdAt: "createdAt", updatedAt: false },
+    toJSON: {
+      virtuals: true,
+      transform(_doc: unknown, ret: Record<string, unknown>) {
+        (ret as Record<string, unknown>).id = ((ret as Record<string, unknown>)._id as string).toString();
+        delete (ret as Record<string, unknown>)._id;
+        delete (ret as Record<string, unknown>).__v;
+      },
+    },
+  },
+);
 
-export const insertMedicineSchema = createInsertSchema(medicinesTable).omit({
-  id: true,
-  createdAt: true,
-});
-export type InsertMedicine = z.infer<typeof insertMedicineSchema>;
-export type Medicine = typeof medicinesTable.$inferSelect;
+export const MedicineModel = mongoose.model("Medicine", medicineSchema);
