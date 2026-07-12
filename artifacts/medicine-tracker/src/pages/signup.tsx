@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
-const API_BASE = "";
+import { API_BASE_URL } from "@/lib/config";
 
 export default function Signup() {
   const [, navigate] = useLocation();
@@ -23,7 +22,7 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/auth/signup`, {
+      const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),

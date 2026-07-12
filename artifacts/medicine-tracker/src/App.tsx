@@ -3,11 +3,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth, getStoredToken } from "@/lib/auth-context";
-import { setAuthTokenGetter } from "@workspace/api-client-react";
+import { setAuthTokenGetter, setBaseUrl } from "@workspace/api-client-react";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 import Signup from "@/pages/signup";
 import { Layout } from "@/components/layout";
+import { API_BASE_URL } from "@/lib/config";
 
 import Dashboard from "@/pages/dashboard";
 import Medicines from "@/pages/medicines/index";
@@ -17,8 +18,9 @@ import EditMedicine from "@/pages/medicines/edit";
 import Scanner from "@/pages/scanner";
 import Reports from "@/pages/reports";
 
-// Wire the stored token into the API client
+// Wire the stored token and API base URL into the API client
 setAuthTokenGetter(() => getStoredToken());
+setBaseUrl(API_BASE_URL);
 
 const queryClient = new QueryClient();
 
