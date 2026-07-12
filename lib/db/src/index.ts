@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const MONGO_URI =
   process.env["DATABASE_URL"] ??
-  "mongodb+srv://medical-tracker:YGAV96xRX2R6qpvF@cluster0.wzzcrcb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+  "mongodb+srv://deepika:eaWMa2tBxMN0daqO@cluster0.hov085v.mongodb.net/medicine-tracker?retryWrites=true&w=majority&appName=Cluster0";
 
 if (!MONGO_URI) {
   throw new Error(
@@ -14,7 +14,10 @@ let isConnected = false;
 
 export async function connectDb(): Promise<void> {
   if (isConnected) return;
-  await mongoose.connect(MONGO_URI);
+  await mongoose.connect(MONGO_URI, {
+    dbName: "medicine-tracker",
+    authSource: "admin",
+  });
   isConnected = true;
 }
 
