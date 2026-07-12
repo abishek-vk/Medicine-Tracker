@@ -1,12 +1,15 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
-import { Pill, LayoutDashboard, Search, FileText, ScanBarcode } from "lucide-react";
+import { Pill, LayoutDashboard, FileText, ScanBarcode, LogOut } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import { Button } from "@/components/ui/button";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
+  const { user, logout } = useAuth();
 
   const navItems = [
-    { href: "/", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/medicines", label: "Medicines", icon: Pill },
     { href: "/scanner", label: "Scanner", icon: ScanBarcode },
     { href: "/reports", label: "Reports", icon: FileText },
@@ -41,6 +44,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+        <div className="border-t p-4 space-y-2">
+          <p className="text-sm font-medium truncate">{user?.name}</p>
+          <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+            onClick={() => { logout(); }}
+          >
+            <LogOut className="h-4 w-4" />
+            Sign Out
+          </Button>
+        </div>
       </aside>
       <main className="flex-1 overflow-auto">
         {children}
