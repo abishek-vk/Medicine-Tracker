@@ -19,6 +19,7 @@ export default function Medicines() {
     status: status === "all" ? undefined : status,
     sortBy,
   });
+  const medicineRows = normalizeMedicines(medicines);
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
@@ -45,7 +46,7 @@ export default function Medicines() {
           />
         </div>
         <Select value={status} onValueChange={(v: any) => setStatus(v)}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-45">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -57,7 +58,7 @@ export default function Medicines() {
           </SelectContent>
         </Select>
         <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-45">
             <SelectValue placeholder="Sort By" />
           </SelectTrigger>
           <SelectContent>
@@ -85,12 +86,12 @@ export default function Medicines() {
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8">Loading...</TableCell>
               </TableRow>
-            ) : medicines?.length === 0 ? (
+            ) : medicineRows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No medicines found.</TableCell>
               </TableRow>
             ) : (
-              medicines?.map((med) => (
+              medicineRows.map((med) => (
                 <TableRow key={med.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
                   <TableCell>
                     <Link href={`/medicines/${med.id}`} className="block">
@@ -115,4 +116,19 @@ export default function Medicines() {
       </div>
     </div>
   );
+}
+
+function normalizeMedicines(medicines: unknown) {
+  if (Array.isArray(medicines)) {
+    return medicines;
+  }
+
+  if (medicines && typeof medicines === "object") {
+    const candidate = (medicines as { data?: unknown }).data;
+    if (Array.isArray(candidate)) {
+      return candidate;
+    }
+  }
+
+  return [];
 }

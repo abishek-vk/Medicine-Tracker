@@ -9,6 +9,7 @@ import { Link } from "wouter";
 export default function Dashboard() {
   const { data: summary, isLoading: loadingSummary } = useGetDashboardSummary();
   const { data: recent, isLoading: loadingRecent } = useGetRecentMedicines({ limit: 5 });
+  const recentMedicines = normalizeRecentMedicines(recent);
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -34,11 +35,11 @@ export default function Dashboard() {
               <div className="space-y-4">
                 {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
               </div>
-            ) : recent?.length === 0 ? (
+            ) : recentMedicines.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">No recent medicines.</div>
             ) : (
               <div className="divide-y">
-                {recent?.map((med) => (
+                {recentMedicines.map((med) => (
                   <Link key={med.id} href={`/medicines/${med.id}`}>
                     <div className="flex items-center justify-between py-3 hover:bg-muted/50 px-2 rounded-md transition-colors cursor-pointer group">
                       <div>
@@ -118,4 +119,19 @@ function StatCard({ title, value, icon: Icon, color, loading }: { title: string,
       </CardContent>
     </Card>
   );
+}
+
+function normalizeRecentMedicines(recent: unknown) {
+  if (Array.isArray(recent)) {
+    return recent;
+  }
+
+  if (recent && typeof recent === "object") {
+    const candidate = (recent as { data?: unknown }).data;
+    if (Array.isArray(candidate)) {
+      return candidate;
+    }
+  }
+
+  return [];
 }
