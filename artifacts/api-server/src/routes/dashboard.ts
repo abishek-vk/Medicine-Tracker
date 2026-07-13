@@ -1,11 +1,13 @@
 import { Router, type IRouter } from "express";
 import { MedicineModel } from "@workspace/db";
 import { withComputedFields, type MedicineRecord } from "../lib/medicine-status";
+import type { AuthPayload } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
-router.get("/dashboard/summary", async (_req, res): Promise<void> => {
-  const docs = await MedicineModel.find().lean();
+router.get("/dashboard/summary", async (req, res): Promise<void> => {
+  const userId = ((req as unknown as { user: AuthPayload }).user).userId;
+  const docs = await MedicineModel.find({ userId }).lean();
   const medicines: MedicineRecord[] = docs.map((doc: Record<string, unknown>) => withComputedFields(doc));
 
   const summary = {
@@ -19,8 +21,9 @@ router.get("/dashboard/summary", async (_req, res): Promise<void> => {
   res.json(summary);
 });
 
-router.get("/reports/summary", async (_req, res): Promise<void> => {
-  const docs = await MedicineModel.find().lean();
+router.get("/reports/summary", async (req, res): Promise<void> => {
+  const userId = ((req as unknown as { user: AuthPayload }).user).userId;
+  const docs = await MedicineModel.find({ userId }).lean();
   const medicines = docs.map((doc: Record<string, unknown>) => withComputedFields(doc));
 
   const now = new Date();

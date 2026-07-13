@@ -11,6 +11,7 @@ import {
   GetRecentMedicinesQueryParams,
 } from "@workspace/api-zod";
 import { withComputedFields, type MedicineStatus } from "../lib/medicine-status";
+import type { AuthPayload } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
@@ -21,9 +22,10 @@ router.get("/medicines", async (req, res): Promise<void> => {
     return;
   }
 
+  const userId = ((req as unknown as { user: AuthPayload }).user).userId;
   const { search, status, sortBy } = query.data;
 
-  const filter: Record<string, unknown> = {};
+  const filter: Record<string, unknown> = { userId };
 
   if (search) {
     const regex = new RegExp(search, "i");
@@ -78,11 +80,13 @@ router.post("/medicines", async (req, res): Promise<void> => {
     return;
   }
 
+  const userId = ((req as unknown as { user: AuthPayload }).user).userId;
   const { manufacturingDate, expiryDate, ...rest } = parsed.data;
 
   const [doc] = await MedicineModel.create([
     {
       ...rest,
+      userId,
       manufacturingDate: manufacturingDate.toISOString().slice(0, 10),
       expiryDate: expiryDate.toISOString().slice(0, 10),
     },
@@ -98,7 +102,9 @@ router.get("/medicines/lookup/:qrCodeValue", async (req, res): Promise<void> => 
     return;
   }
 
-  const doc = await MedicineModel.findOne({ qrCodeValue: params.data.qrCodeValue }).lean();
+  const userId = ((req as unknown as { user: AuthPayload }).user).userId;
+
+  const doc = await MedicineModel.findOne({ qrCodeValue: params.data.qrCodeValue, userId }).lean();
   if (!doc) {
     res.status(404).json({ error: "Medicine not found" });
     return;
@@ -114,7 +120,9 @@ router.get("/medicines/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const doc = await MedicineModel.findById(params.data.id).lean();
+  const userId = ((req as unknown as { user: AuthPayload }).user).userId;
+
+  const doc = await MedicineModel.findOne({ _id: params.data.id, userId }).lean();
   if (!doc) {
     res.status(404).json({ error: "Medicine not found" });
     return;
@@ -136,10 +144,11 @@ router.put("/medicines/:id", async (req, res): Promise<void> => {
     return;
   }
 
+  const userId = ((req as unknown as { user: AuthPayload }).user).userId;
   const { manufacturingDate, expiryDate, ...rest } = parsed.data;
 
-  const doc = await MedicineModel.findByIdAndUpdate(
-    params.data.id,
+  const doc = await MedicineModel.findOneAndUpdate(
+    { _id: params.data.id, userId },
     {
       $set: {
         ...rest,
@@ -165,7 +174,9 @@ router.delete("/medicines/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const doc = await MedicineModel.findByIdAndDelete(params.data.id).lean();
+  const userId = ((req as unknown as { user: AuthPayload }).user).userId;
+
+  const doc = await MedicineModel.findOneAndDelete({ _id: params.data.id, userId }).lean();
   if (!doc) {
     res.status(404).json({ error: "Medicine not found" });
     return;
@@ -181,7 +192,9 @@ router.get("/dashboard/recent", async (req, res): Promise<void> => {
     return;
   }
 
-  const docs = await MedicineModel.find()
+  const userId = ((req as unknown as { user: AuthPayload }).user).userId;
+
+  const docs = await MedicineModel.find({ userId })
     .sort({ createdAt: -1 })
     .limit(query.data.limit)
     .lean();

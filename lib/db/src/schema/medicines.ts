@@ -2,6 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 const medicineSchema = new Schema(
   {
+    userId: { type: String, required: true, index: true },
     name: { type: String, required: true },
     batchNumber: { type: String, required: true },
     manufacturer: { type: String, required: true },
